@@ -21,6 +21,10 @@ const user = new mongoose.Schema({
     required: true,
     min: 8,
   },
+  profileImg:{
+    type:String,
+    default:"Photos/avatar.jpg",
+  },
   Posts:[{
     type:mongoose.Types.ObjectId,
     ref:"Posts",
