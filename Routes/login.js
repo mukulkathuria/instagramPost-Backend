@@ -26,15 +26,18 @@ router.post("/login", async (req, res) => {
 
   //If All Ok then and Generate Token
   const token = jwt.sign(
-    { name: user.name, username: user.username },
+    { name: user.name, username: user.username, role: user.role },
     process.env.ACCESS_TOKEN,
     { algorithm: "HS512", expiresIn: "30m" }
   );
   const refreshToken = jwt.sign(
-    { name: user.name, username: user.username },
+    { name: user.name, username: user.username, role: user.role },
     process.env.REFRESH_TOKEN,
     { algorithm: "HS512", expiresIn: "7h" }
   );
+  // checking User 
+  const verified = jwt.verify(token,process.env.ACCESS_TOKEN);
+  console.log(verified);
   res.cookie("qid", refreshToken, {
     maxAge: 1000 * 3600 * 7,
     httpOnly: true,
@@ -49,19 +52,27 @@ router.post("/token", (req, res) => {
   if (refreshToken === null)
     return res.status(401).json({ error: "Invalid Token" });
 
-  if (req.headers.cookie.split("=")[1] !== refreshToken)
+  if (!req.headers.cookie || req.headers.cookie.split("=")[1] !== refreshToken)
     return res.status(403).json({ error: "Unauthorized" });
 
   jwt.verify(refreshToken, process.env.REFRESH_TOKEN, (err, user) => {
     if (err) return res.status(403).json({ error: "Unauthorized" });
-    const { name, username } = user;
-    const token = jwt.sign({ name, username }, process.env.ACCESS_TOKEN, {
+    const { name, username, role } = user;
+    const token = jwt.sign({ name, username, role }, process.env.ACCESS_TOKEN, {
       algorithm: "HS512",
       expiresIn: "30m",
     });
 
     res.send({ access_token: token });
   });
+});
+
+router.post("/logout", (req, res) => {
+  if (!req.headers.cookie || req.headers.cookie.split("=")[0] !== "qid")
+    return res.status(404).json({ error: "User Not Found" });
+
+  res.clearCookie("qid");
+  res.send(true);
 });
 
 module.exports = router;

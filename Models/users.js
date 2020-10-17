@@ -31,6 +31,10 @@ const user = new mongoose.Schema({
   }],
   follows:[String],
   followers:[String],
+  role: {
+    type: String,
+    default: "normal"
+  },
   date: {
     type: Date,
     default: Date.now,

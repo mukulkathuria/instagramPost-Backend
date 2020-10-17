@@ -4,6 +4,7 @@ const Users = require("../Models/users");
 const mul = require("../Multer/multerconfig");
 const multer = require("multer");
 const mongoose = require("mongoose");
+const isAdmin = require("../Middlewares/isAdmin");
 
 router.get("/", async (_, res) => {
   const result = await Posts.find();
@@ -78,6 +79,24 @@ router.post("/addProfile", async (req, res) => {
       return res.status(500).json({ error: "Server Error" });
     }
   });
+});
+
+router.post("/createpost" , isAdmin , async (req, res) => {
+  const { headimg, username, caption, imgurl } = req.body;
+
+  const posts = new Posts({
+    heading: username,
+    headImg: headimg,
+    ImgUrl: imgurl,
+    caption,
+  });
+
+  try {
+    await posts.save();
+    return res.send("Saved");
+  } catch (error) {
+    return res.status(400).json({ error: "Server Error" });
+  }
 });
 
 module.exports = router;
