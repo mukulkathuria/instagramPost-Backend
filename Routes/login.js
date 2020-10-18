@@ -28,20 +28,19 @@ router.post("/login", async (req, res) => {
   const token = jwt.sign(
     { name: user.name, username: user.username, role: user.role },
     process.env.ACCESS_TOKEN,
-    { algorithm: "HS512", expiresIn: "30m" }
+    { algorithm: "HS512", expiresIn: "3m" }
   );
   const refreshToken = jwt.sign(
     { name: user.name, username: user.username, role: user.role },
     process.env.REFRESH_TOKEN,
     { algorithm: "HS512", expiresIn: "7h" }
   );
-  // checking User 
-  const verified = jwt.verify(token,process.env.ACCESS_TOKEN);
-  console.log(verified);
+
+  // checking User
   res.cookie("qid", refreshToken, {
     maxAge: 1000 * 3600 * 7,
+    domain: "http://localhost:3000",
     httpOnly: true,
-    sameSite: "strict",
   });
   res.send({ access_token: token, refresh_token: refreshToken });
 });
@@ -53,14 +52,14 @@ router.post("/token", (req, res) => {
     return res.status(401).json({ error: "Invalid Token" });
 
   if (!req.headers.cookie || req.headers.cookie.split("=")[1] !== refreshToken)
-    return res.status(403).json({ error: "Unauthorized" });
+    return res.status(403).json({ error: "cookie not found" });
 
   jwt.verify(refreshToken, process.env.REFRESH_TOKEN, (err, user) => {
     if (err) return res.status(403).json({ error: "Unauthorized" });
     const { name, username, role } = user;
     const token = jwt.sign({ name, username, role }, process.env.ACCESS_TOKEN, {
       algorithm: "HS512",
-      expiresIn: "30m",
+      expiresIn: "3m",
     });
 
     res.send({ access_token: token });

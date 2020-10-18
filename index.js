@@ -14,7 +14,11 @@ const UserinfoRoute = require("./Routes/userinfo");
 //Middlewares
 app.use("/photos", express.static("Photos"));
 app.use(express.json());
-app.use(cors());
+app.use(
+  cors({
+    origin: "http://localhost:3000",
+  })
+);
 
 //Route Middlewares
 app.use("/user", registerRoute);
