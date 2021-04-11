@@ -5,13 +5,14 @@ const mul = require("../Multer/multerconfig");
 const multer = require("multer");
 const mongoose = require("mongoose");
 const isAdmin = require("../Middlewares/isAdmin");
+const auth = require("../Middlewares/authorize");
 
-router.get("/", async (_, res) => {
+router.get("/", auth ,async (_, res) => {
   const result = await Posts.find();
   res.json(result);
 });
 
-router.post("/addposts", (req, res) => {
+router.post("/addposts", auth , (req, res) => {
   mul.upload(req, res, async function (err) {
     if (err instanceof multer.MulterError)
       return res.status(400).json({ error: err.message });
@@ -42,7 +43,7 @@ router.post("/addposts", (req, res) => {
   });
 });
 
-router.post("/deletepost", async (req, res) => {
+router.post("/deletepost", auth ,async (req, res) => {
   const { postid } = req.body;
 
   try {
@@ -54,7 +55,7 @@ router.post("/deletepost", async (req, res) => {
   }
 });
 
-router.post("/addProfile", async (req, res) => {
+router.post("/addProfile", auth , async (req, res) => {
   mul.upload(req, res, async function (err) {
     if (err instanceof multer.MulterError)
       return res.status(400).json({ error: err.message });

@@ -3,6 +3,7 @@ const User = require("../Models/users");
 const jwt = require("jsonwebtoken");
 const JoiValidate = require("../Validations/user");
 const getPass = require("../Validations/password");
+const { TokenConst } = require("../AllConstants");
 
 router.post("/register", async (req, res) => {
   //First Validate the Requests from Joi Validation
@@ -12,12 +13,12 @@ router.post("/register", async (req, res) => {
   //Check the Email or User Exist or not
   const emailexist = await User.findOne({ email: req.body.email });
   if (emailexist)
-    return res.status(400).json({ error: "Email Already Exists" });
+    return res.status(406).json({ error: "Email Already Exists" });
 
   //Check the username
   const usernameexist = await User.findOne({ username: req.body.username });
   if (usernameexist)
-    return res.status(400).json({ error: "Username already Exists" });
+    return res.status(406).json({ error: "Username already Exists" });
 
   //Before saving to Database we have to hashed the Password
   const hashedPassword = await getPass.makePassword(req.body.password);
@@ -34,9 +35,26 @@ router.post("/register", async (req, res) => {
     const token = jwt.sign(
       { name: user.name, username: user.username },
       process.env.ACCESS_TOKEN,
-      { algorithm: "HS512", expiresIn: "1h" }
+      {
+        algorithm: TokenConst.accessTokenAlgo,
+        expiresIn: TokenConst.accessTokenExpTime,
+      }
     );
-    res.send(token);
+    const refreshToken = jwt.sign(
+      { name: user.name, username: user.username, role: user.role },
+      process.env.REFRESH_TOKEN,
+      {
+        algorithm: TokenConst.refreshTokenAlgo,
+        expiresIn: TokenConst.refreshTokenExpTime,
+      }
+    );
+
+    // checking User
+    res.cookie("qid", refreshToken, {
+      maxAge: 1000 * 3600 * 7,
+      httpOnly: true,
+    });
+    res.send({ access_token: token, refresh_token: refreshToken });
   } catch (err) {
     res.status(500).json({ error: "Some Error Occured" });
   }

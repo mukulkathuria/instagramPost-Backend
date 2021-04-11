@@ -11,7 +11,7 @@ const auth = (req, res, next) => {
     req.user = verifiedUser;
     next();
   } catch (err) {
-    return res.status(401).json({ error: "UnAuthorized" });
+    return res.status(403).json({ error: "InValid Token" });
   }
 };
 module.exports = auth;

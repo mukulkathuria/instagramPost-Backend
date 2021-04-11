@@ -8,11 +8,11 @@ const isAdmin = (req, res, next) => {
 
   try {
     const verifiedUser = jwt.verify(token, process.env.ACCESS_TOKEN);
-    if (verifiedUser.role !== "Admin")
+    if (!verifiedUser || verifiedUser.role !== "Admin")
       return res.status(403).json({ error: "UnAuthorized" });
     next();
   } catch (err) {
-    return res.status(401).json({ error: "UnAuthorized" });
+    return res.status(403).json({ error: "UnAuthorized" });
   }
 };
 module.exports = isAdmin;
